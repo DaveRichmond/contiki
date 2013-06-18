@@ -57,16 +57,21 @@ open(const char *name, int access, int mode){
 }
 
 #define STDIO_UART(XX,YY,BAUD)                                                \
-    int __attribute__((__weak__, __section__(".libc")))                       \
-    write(int handle, char *buffer, unsigned int len){                        \
+    int __attribute__((__weak__, __section__(".libc.write")))                       \
+    write(int handle, void *buffer, unsigned int len){                        \
       dspic_uart##XX##_init(BAUD);                                            \
       switch(handle){                                                         \
         case handle_stdin:                                                    \
         case handle_stderr:                                                   \
-          while(len--) dspic_uart##XX##_write(*buffer++);                     \
+          while(len--) dspic_uart##XX##_write(*(char *)buffer++);                     \
       }                                                                       \
       return len;                                                             \
     }
+
+int __attribute__((__weak__, __section(".libc.read")))
+read(int handle, char *buffer, unsigned int len){
+  return 0;
+}
 
 #if defined(__USE_UART1_FOR_STDIO)
 #elif defined(__USE_UART2_FOR_STDIO)

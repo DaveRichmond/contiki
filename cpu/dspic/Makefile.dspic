@@ -4,7 +4,13 @@ DSPIC_FAMILY ?= dsPIC33E
 DSPIC_MODEL  ?= 33EP256GP502
 DSPIC_LINK	 = p$(DSPIC_MODEL)
 
-CFLAGS += -omf=elf -g -O2 -Wall -msfr-warn=off -msmart-io=1 $(CONTIKI_PLAT_DEFS)
+ifeq ($(DEBUG),1)
+	CFLAGS += -g -O0
+else
+	CFLAGS += -O2
+endif
+CFLAGS += -omf=elf -Wall -msfr-warn=off $(CONTIKI_PLAT_DEFS)
+CFLAGS += -msmart-io=0
 #CFLAGS += -I /opt/microchip/xc16/v1.11/include/ 
 
 CONTIKI_CPU=$(CONTIKI)/cpu/dspic
@@ -25,8 +31,8 @@ STRIP	= xc16-strip
 CFLAGS 	+= -mcpu=$(DSPIC_MODEL) -DDSPIC_FAMILY=$(DSPIC_FAMILY)
 LDFLAGS += -mcpu=$(DSPIC_MODEL) -omf=elf \
 	/opt/microchip/xc16/v1.11/lib/libpic30-elf.a \
-	/opt/microchip/xc16/v1.11/lib/$(DSPIC_FAMILY)/libp$(DSPIC_MODEL)-elf.a \
 	-Wl,--heap=1024 \
+	-Wl,-Map=$(DSPIC_MODEL).map \
 	-Wl,--defsym=__MPLAB_BUILD=1,,--script=p$(DSPIC_MODEL).gld,--stack=16,--check-sections,--data-init,--pack-data,--handles,--isr,--no-gc-sections,--fill-upper=0,--stackguard=16,--no-force-link,--smart-io,--report-mem 
 
 #"/opt/microchip/xc16/v1.11/bin/xc16-gcc"   configuration_bits.c  -o build/XC16_dsPIC33EP256GP502/production/configuration_bits.o  -c -mcpu=33EP256GP502  -MMD -MF "build/XC16_dsPIC33EP256GP502/production/configuration_bits.o.d"      -g -omf=elf -O2 -msmart-io=1 -Wall -msfr-warn=off

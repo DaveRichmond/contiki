@@ -38,9 +38,15 @@
 #include <sys/etimer.h>
 
 void clock_init(void){
-  //__builtin_write_OSCCONH(0x02);
-  //__builtin_write_OSCCONL(0x01);
-  //while(OSCCONbits.COSC != 0b011);
+  // N1 = 2, N2 = 2, M = 40, XTAL = 12MHz -> 120MHz
+  CLKDIVbits.PLLPRE = 0;
+  CLKDIVbits.PLLPOST = 0;
+  PLLFBD = 40 - 1;
+
+  __builtin_write_OSCCONH(0x03);
+  __builtin_write_OSCCONL(0x01);
+  while(OSCCONbits.COSC != 0b011);
+  while(OSCCONbits.LOCK != 1);
 }
 
 clock_time_t clock_time(void){

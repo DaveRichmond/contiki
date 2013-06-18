@@ -38,7 +38,7 @@
 
 void dspic_uart1_init(int baud){
   if(U1MODEbits.UARTEN == 0){
-    int brg = (FCY / 16) / baud;
+    int brg = ((long)FCY / 16) / baud;
     U1BRG = brg;
     U1MODEbits.UARTEN = 1;
     U1STAbits.UTXEN = 1;
