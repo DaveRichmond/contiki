@@ -1,0 +1,39 @@
+# @author David Richmond <dave@prstat.org>
+
+DSPIC_FAMILY ?= dsPIC33E
+DSPIC_MODEL  ?= 33EP256GP502
+DSPIC_LINK	 = p$(DSPIC_MODEL)
+
+CFLAGS += -omf=elf -g -O2 -Wall -msfr-warn=off -msmart-io=1 $(CONTIKI_PLAT_DEFS)
+#CFLAGS += -I /opt/microchip/xc16/v1.11/include/ 
+
+CONTIKI_CPU=$(CONTIKI)/cpu/dspic
+CONTIKI_CPU_DIRS = . lib dev
+CPU_LIBS = $(notdir $(wildcard $(CONTIKI_CPU)/lib/*.c))
+CPU_DEVS = $(notdir $(wildcard $(CONTIKI_CPU)/dev/*.c))
+CONTIKI_SOURCEFILES += dspic.c rtimer-arch.c clock.c watchdog.c stdio.c $(CPU_LIBS) $(CPU_DEVS) 
+CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
+
+### Compiler definitions
+CC   	= xc16-gcc
+LD		= xc16-gcc
+AS		= xc16-as
+AR		= xc16-ar
+OBJCOPY	= xc16-objcopy
+STRIP	= xc16-strip
+
+CFLAGS 	+= -mcpu=$(DSPIC_MODEL) -DDSPIC_FAMILY=$(DSPIC_FAMILY)
+LDFLAGS += -mcpu=$(DSPIC_MODEL) -omf=elf \
+	/opt/microchip/xc16/v1.11/lib/libpic30-elf.a \
+	/opt/microchip/xc16/v1.11/lib/$(DSPIC_FAMILY)/libp$(DSPIC_MODEL)-elf.a \
+	-Wl,--heap=1024 \
+	-Wl,--defsym=__MPLAB_BUILD=1,,--script=p$(DSPIC_MODEL).gld,--stack=16,--check-sections,--data-init,--pack-data,--handles,--isr,--no-gc-sections,--fill-upper=0,--stackguard=16,--no-force-link,--smart-io,--report-mem 
+
+#"/opt/microchip/xc16/v1.11/bin/xc16-gcc"   configuration_bits.c  -o build/XC16_dsPIC33EP256GP502/production/configuration_bits.o  -c -mcpu=33EP256GP502  -MMD -MF "build/XC16_dsPIC33EP256GP502/production/configuration_bits.o.d"      -g -omf=elf -O2 -msmart-io=1 -Wall -msfr-warn=off
+#"/opt/microchip/xc16/v1.11/bin/xc16-gcc"   interrupts.c  -o build/XC16_dsPIC33EP256GP502/production/interrupts.o  -c -mcpu=33EP256GP502  -MMD -MF "build/XC16_dsPIC33EP256GP502/production/interrupts.o.d"      -g -omf=elf -O2 -msmart-io=1 -Wall -msfr-warn=off
+#"/opt/microchip/xc16/v1.11/bin/xc16-gcc"   main.c  -o build/XC16_dsPIC33EP256GP502/production/main.o  -c -mcpu=33EP256GP502  -MMD -MF "build/XC16_dsPIC33EP256GP502/production/main.o.d"      -g -omf=elf -O2 -msmart-io=1 -Wall -msfr-warn=off
+#"/opt/microchip/xc16/v1.11/bin/xc16-gcc"   system.c  -o build/XC16_dsPIC33EP256GP502/production/system.o  -c -mcpu=33EP256GP502  -MMD -MF "build/XC16_dsPIC33EP256GP502/production/system.o.d"      -g -omf=elf -O2 -msmart-io=1 -Wall -msfr-warn=off
+#"/opt/microchip/xc16/v1.11/bin/xc16-gcc"   traps.c  -o build/XC16_dsPIC33EP256GP502/production/traps.o  -c -mcpu=33EP256GP502  -MMD -MF "build/XC16_dsPIC33EP256GP502/production/traps.o.d"      -g -omf=elf -O2 -msmart-io=1 -Wall -msfr-warn=off
+#"/opt/microchip/xc16/v1.11/bin/xc16-gcc"   user.c  -o build/XC16_dsPIC33EP256GP502/production/user.o  -c -mcpu=33EP256GP502  -MMD -MF "build/XC16_dsPIC33EP256GP502/production/user.o.d"      -g -omf=elf -O2 -msmart-io=1 -Wall -msfr-warn=off
+#"/opt/microchip/xc16/v1.11/bin/xc16-gcc"   -o dist/XC16_dsPIC33EP256GP502/production/dspic33_c_template_1.X.production.elf  build/XC16_dsPIC33EP256GP502/production/configuration_bits.o build/XC16_dsPIC33EP256GP502/production/interrupts.o build/XC16_dsPIC33EP256GP502/production/main.o build/XC16_dsPIC33EP256GP502/production/system.o build/XC16_dsPIC33EP256GP502/production/traps.o build/XC16_dsPIC33EP256GP502/production/user.o      -mcpu=33EP256GP502        -omf=elf -Wl,--defsym=__MPLAB_BUILD=1,,--script=p33EP256GP502.gld,--stack=16,--check-sections,--data-init,--pack-data,--handles,--isr,--no-gc-sections,--fill-upper=0,--stackguard=16,--no-force-link,--smart-io,--report-mem 
+ 

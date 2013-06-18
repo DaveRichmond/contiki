@@ -7,6 +7,8 @@
 *.d
 *.ihex
 *.pyc
+*.micaz
+*.dspic33ep-breadboard
 *.redbee-econotag
 *.econotag 
 *.native
