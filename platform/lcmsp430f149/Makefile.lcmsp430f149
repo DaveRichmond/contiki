@@ -1,4 +1,4 @@
-ARCH        = msp430.c uart0.c
+ARCH        = msp430.c uart0.c button.c onewire.c
 
 CONTIKI_TARGET_DIRS = . dev
 CONTIKI_TARGET_MAIN = contiki-lcmsp430f149-main.c

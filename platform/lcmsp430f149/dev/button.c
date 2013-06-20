@@ -33,49 +33,73 @@
  */
 
 #include <stdio.h>
-#include <string.h>
 
 #include "contiki.h"
-#include "dev/watchdog.h"
-#include "dev/leds.h"
-#include "dev/uart0.h"
-#include "dev/button.h"
+#include "button.h"
+#include "isr_compat.h"
 
-static void print_processes(struct process * const processes[]){
-  printf("Starting");
-  while(*processes != NULL){
-    printf(" '%s'", (*processes)->name);
-    processes++;
-  }
-  printf("\r\n");
+#define DEBOUNCE_TIME (CLOCK_SECOND/16)
+static struct timer debounce_timer;
+
+void button_init(){
+  button_event = process_alloc_event();
+
+  dint();
+  BUTTON_PORT(SEL) &= ~BUTTON_PINS;
+  BUTTON_PORT(DIR) &= ~BUTTON_PINS;
+
+#if BUTTON_INTERRUPT
+  BUTTON_PORT(IE) |= BUTTON_PINS;
+  BUTTON_PORT(IFG) &= ~BUTTON_PINS;
+#endif
+  eint();
+
+  timer_set(&debounce_timer, CLOCK_SECOND/CLOCK_SECOND);
 }
 
-int main(int argc, char **argv){
-  msp430_cpu_init();
-  watchdog_stop();
 
-  uart0_init(115200);
-  leds_init();
-  button_init();
+uint8_t button_pressed(void){
+  return BUTTON_PORT(IN) & BUTTON_PINS;
+}
 
-  clock_init();
-  rtimer_init();
+#if BUTTON_INTERRUPT
+volatile uint8_t btnp = 0;
+ISR(PORT3, button_interrupt){
+  if(BUTTON_PORT(IFG) & BUTTON_PINS){
+    BUTTON_PORT(IFG) &= ~BUTTON_PINS;
+    if(timer_expired(&debounce_timer)){
+      btnp = BUTTON_PORT(IN);
+      timer_set(&debounce_timer, DEBOUNCE_TIME);
+      process_post(PROCESS_BROADCAST, button_event, (void *)&btnp);
 
-  process_init();
-  process_start(&etimer_process, NULL);
+      LPM4_EXIT;
+    }
+  }
+}
+#else
+PROCESS(button_poll_process, "Button polling process");
 
-  printf("****** Booting %s *******\n", CONTIKI_VERSION_STRING);
+static inline uint8_t read_buttons(){ return (BUTTON_PORT(IN) & BUTTON_PINS) ^ BUTTON_PINS; }
+uint8_t button_data, new_button_data;
+static struct etimer et;
+PROCESS_THREAD(button_poll_process, ev, data){
+  PROCESS_BEGIN();
 
-  process_start(&button_poll_process, NULL);
-
-  print_processes(autostart_processes);
-  autostart_start(autostart_processes);
+  button_data = 0;
 
   while(1){
-    int r;
+    new_button_data = read_buttons();
 
-    do {
-      r = process_run();
-    } while(r > 0);
+    if(new_button_data != button_data){
+      process_post(PROCESS_BROADCAST, button_event, &new_button_data);
+    }
+
+    button_data = new_button_data;
+
+    etimer_set(&et, 10);
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
   }
+
+  PROCESS_END();
 }
+#endif

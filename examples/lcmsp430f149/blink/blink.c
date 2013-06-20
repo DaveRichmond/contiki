@@ -32,50 +32,34 @@
  *      Author: David Richmond <dave@prstat.org>
  */
 
-#include <stdio.h>
-#include <string.h>
-
 #include "contiki.h"
-#include "dev/watchdog.h"
 #include "dev/leds.h"
-#include "dev/uart0.h"
-#include "dev/button.h"
 
-static void print_processes(struct process * const processes[]){
-  printf("Starting");
-  while(*processes != NULL){
-    printf(" '%s'", (*processes)->name);
-    processes++;
-  }
-  printf("\r\n");
-}
+PROCESS(red_process, "Red Blink Process");
+PROCESS(green_process, "Green Blink Process");
+AUTOSTART_PROCESSES(&green_process, &red_process);
 
-int main(int argc, char **argv){
-  msp430_cpu_init();
-  watchdog_stop();
-
-  uart0_init(115200);
-  leds_init();
-  button_init();
-
-  clock_init();
-  rtimer_init();
-
-  process_init();
-  process_start(&etimer_process, NULL);
-
-  printf("****** Booting %s *******\n", CONTIKI_VERSION_STRING);
-
-  process_start(&button_poll_process, NULL);
-
-  print_processes(autostart_processes);
-  autostart_start(autostart_processes);
+static struct etimer etr;
+PROCESS_THREAD(red_process, ev, data){
+  PROCESS_BEGIN();
 
   while(1){
-    int r;
-
-    do {
-      r = process_run();
-    } while(r > 0);
+    leds_toggle(LEDS_RED);
+    etimer_set(&etr, CLOCK_SECOND/8);
+    PROCESS_WAIT_UNTIL(etimer_expired(&etr));
   }
+
+  PROCESS_END();
+}
+
+static struct etimer etg;
+PROCESS_THREAD(green_process, ev, data){
+  PROCESS_BEGIN();
+
+  while(1){
+    leds_toggle(LEDS_GREEN);
+    etimer_set(&etg, CLOCK_SECOND);
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&etg));
+  }
+  PROCESS_END();
 }

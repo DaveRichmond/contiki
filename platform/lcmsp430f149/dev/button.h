@@ -32,50 +32,22 @@
  *      Author: David Richmond <dave@prstat.org>
  */
 
-#include <stdio.h>
-#include <string.h>
+#ifndef BUTTON_H_
+#define BUTTON_H_
 
-#include "contiki.h"
-#include "dev/watchdog.h"
-#include "dev/leds.h"
-#include "dev/uart0.h"
-#include "dev/button.h"
+PROCESS_NAME(button_poll_process);
 
-static void print_processes(struct process * const processes[]){
-  printf("Starting");
-  while(*processes != NULL){
-    printf(" '%s'", (*processes)->name);
-    processes++;
-  }
-  printf("\r\n");
-}
+#define BUTTON_PORT(type) P3##type
 
-int main(int argc, char **argv){
-  msp430_cpu_init();
-  watchdog_stop();
+#define BUTTON_1 (1<<0)
+#define BUTTON_2 (1<<1)
+#define BUTTON_3 (1<<2)
 
-  uart0_init(115200);
-  leds_init();
-  button_init();
+#define BUTTON_PINS   (BUTTON_1 | BUTTON_2 | BUTTON_3)
 
-  clock_init();
-  rtimer_init();
+process_event_t button_event;
 
-  process_init();
-  process_start(&etimer_process, NULL);
+void button_init(void);
+uint8_t button_pressed(void);
 
-  printf("****** Booting %s *******\n", CONTIKI_VERSION_STRING);
-
-  process_start(&button_poll_process, NULL);
-
-  print_processes(autostart_processes);
-  autostart_start(autostart_processes);
-
-  while(1){
-    int r;
-
-    do {
-      r = process_run();
-    } while(r > 0);
-  }
-}
+#endif /* BUTTON_H_ */
