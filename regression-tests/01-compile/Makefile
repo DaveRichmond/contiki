@@ -2,6 +2,7 @@ EXAMPLESDIR=../../examples
 TOOLSDIR=../../tools
 
 EXAMPLES = \
+hello-world/lcmsp430f149 \
 hello-world/avr-raven \
 hello-world/econotag \
 hello-world/esb \

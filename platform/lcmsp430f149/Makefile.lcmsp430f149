@@ -1,0 +1,36 @@
+ARCH        = msp430.c uart0.c
+
+CONTIKI_TARGET_DIRS = . dev
+CONTIKI_TARGET_MAIN = contiki-lcmsp430f149-main.c
+
+CFLAGS += -g
+
+CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(CONTIKI_TARGET_MAIN)
+
+MCU=msp430f149
+include $(CONTIKI)/cpu/msp430/Makefile.msp430
+
+%.hex: %.ihex
+	mv $< $@
+
+%.u: %.hex
+	@echo "Uploading $<"
+	mspdebug tilib -d /dev/ttyACM0 --allow-fw-update "prog $<"
+
+%.size: %.$(TARGET)
+	msp430-size $<
+
+### System dependent Makefile
+
+ifeq ($(HOST_OS),FreeBSD)
+  # settings for FreeBSD
+  -include $(CONTIKI)/platform/$(TARGET)/buildscripts/Makefile.freebsd
+else
+  ifeq ($(HOST_OS),Windows)
+    # settings for Windows
+    -include $(CONTIKI)/platform/$(TARGET)/buildscripts/Makefile.win
+  else
+    # settings for an arbitary unix-like platform
+    -include $(CONTIKI)/platform/$(TARGET)/buildscripts/Makefile.unix
+  endif
+endif
