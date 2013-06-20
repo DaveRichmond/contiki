@@ -58,7 +58,7 @@ void uart0_init(unsigned long ubr){
   //UBR00 = ubr;
   //UBR10 = ubr >> 8;
   UBR00 = 0x45;             // hard code to 115200 for now (earlier ubr calculation seems wrong)
-  UBR01 = 0x00;
+  UBR10 = 0x00;
   UMCTL0 = 0x00;              // no modulation
   UCTL0 &= ~SWRST;
 }
@@ -88,8 +88,10 @@ ISR(UART0RX, uart0_rx_interrupt){
   }
 }
 
+#if STDIO_USE_UART0
 int putchar(int c){
   if(c == '\n') uart0_writeb('\r');
   uart0_writeb((char)c);
   return c;
 }
+#endif
